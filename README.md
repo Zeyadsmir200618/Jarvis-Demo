@@ -1,87 +1,57 @@
-J.A.R.V.I.S. AI Twin (DEMO) ⚡ 
-A fully autonomous, 1-click deployable Multi-Agent Digital Twin powered by local LLMs (Llama 3.2). J.A.R.V.I.S. features intelligent agent routing, live zero-dependency web UI generation, and system root-cause analysis—all running 100% locally on your own hardware without relying on cloud APIs.
+# J.A.R.V.I.S. — AI-Powered Digital Twin Platform (prototype)
 
-🚀 Features
-Local-First AI Execution: Powered by Ollama and Llama 3.2, running directly on your local GPU (optimized for 4GB+ VRAM like the RTX 3050) for maximum privacy and zero API costs.
+Graduation project, Software Engineering, Misr International University.
+J.A.R.V.I.S. is designed as **nine specialized AI agents coordinated by one
+Orchestrator**, reasoning over a Digital Twin of a simulated software system,
+with sandbox validation, security review and **mandatory human approval** before
+any change. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-Intelligent Agent Routing: Automatically categorizes user intents and routes them to specialized AI agents, or allows manual override via the UI.
+> **Status: early prototype (~10% of the planned system).** Only the pieces
+> marked *Implemented* below exist in code. Everything else is planned.
 
-Live Interactive Web Preview: The Web Builder Agent writes pure HTML/CSS/JS and instantly renders the result in a sandboxed Next.js iframe—bypassing the need for manual file rendering.
+| Component | Status |
+|---|---|
+| FastAPI backend (`/health`, `/status`, `/agents`, `/chat`) | Implemented |
+| Orchestrator: keyword (word-boundary) + LLM-fallback + manual routing | Partial (LangGraph planned) |
+| RCA Agent: structured prompt to local Llama 3.2 over pasted text | Partial (no twin/telemetry context) |
+| Next.js UI: chat, routing selector, trace panel, Workspace (MCP) panel | Implemented |
+| **Host MCP server**: least-privilege access to ONE authorized project folder | Implemented, tested |
+| **Approval gate + audit trail** for MCP file writes and commands | Implemented (prototype scope) |
+| Docker Compose dev stack with health checks and hot reload | Implemented, tested |
+| Monitoring, Detection, Prediction, Knowledge, Remediation, Validation, Security, Execution agents | Planned |
+| Digital Twin, Prometheus/OpenTelemetry, PostgreSQL, LangGraph, Docker sandbox, JWT/RBAC | Planned |
 
-Root Cause Analysis (RCA): Paste raw error logs or stack traces, and the specialized RCA agent will diagnose the exact failure point and recommend structural fixes.
+The MCP workspace is a working prototype of the documented *propose → human
+approval → execute → validate* path, applied to a real project folder on your PC.
+It is not the full Remediation/Validation/Execution agent pipeline.
 
-1-Click Orchestration: Spin up the entire microservice architecture (Ollama engine, Python backend, React frontend) via a single Windows batch script (start_jarvis.bat).
+## Quick start
 
-🏗️ Architecture & Tech Stack
-J.A.R.V.I.S. is built on a modern microservices architecture to ensure non-blocking generation and high responsiveness.
+Prerequisites: Docker Desktop (Windows/macOS) or Docker Engine + Compose v2.24+,
+Python 3.10+ on the host (for the MCP server), optionally [Ollama](https://ollama.com)
+with `ollama pull llama3.2`.
 
-Frontend: Next.js (React), Tailwind CSS, TypeScript.
+```bash
+python scripts/generate_secrets.py --root "C:\path\to\a\project\folder"   # creates .env + mcp-server/.env
+python -m venv mcp-server/.venv
+mcp-server/.venv/Scripts/pip install -r mcp-server/requirements.txt          # macOS/Linux: mcp-server/.venv/bin/pip
+scripts/start-mcp-server.ps1                                                 # macOS/Linux: scripts/start-mcp-server.sh
+docker compose up --build                                                    # in a second terminal
+```
 
-Backend: FastAPI (Python), HTTPX (asynchronous LLM streaming), Pydantic.
+Open http://localhost:3000 (UI) and http://localhost:8000/docs (API).
 
-AI Engine: Ollama (Llama 3.2 3B model) bound locally to 127.0.0.1:11434.
+* Docker details: [docs/DOCKER_SETUP.md](docs/DOCKER_SETUP.md)
+* MCP architecture, security model and setup: [docs/MCP_SETUP.md](docs/MCP_SETUP.md)
+* Step-by-step live demo: [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md)
+* Folder structure: [docs/REPO_STRUCTURE.md](docs/REPO_STRUCTURE.md)
+* What was tested / what is incomplete: [docs/STATUS.md](docs/STATUS.md)
+* Changes from the original upload: [docs/MIGRATION.md](docs/MIGRATION.md)
 
-🛠️ Prerequisites
-Before installing, ensure your system has the following installed:
+## Tests
 
-Node.js (v18.0 or higher)
-
-Python (v3.10 or higher)
-
-Ollama (Windows installation)
-
-Hardware: Dedicated GPU recommended (e.g., NVIDIA RTX 3050 4GB or better) for acceptable inference speeds.
-
-⚙️ Quick Start
-1. Prepare the AI Model
-Open a terminal and pull the optimized Llama model into your local machine:
-
-Bash
-ollama pull llama3.2
-2. Install Dependencies
-You will need to install the dependencies for both the frontend and backend.
-
-Bash
-# Backend setup
-cd backend
-pip install -r requirements.txt
-
-# Frontend setup
-cd frontend
-npm install
-3. Launch J.A.R.V.I.S.
-Return to the root directory and double-click the startup script:
-
-Bash
-start_jarvis.bat
-This script will automatically open three synchronized terminal windows:
-
-Ollama Engine - Serves the local LLM API.
-
-JARVIS Backend - Runs the FastAPI server on [http://127.0.0.1:8000](http://127.0.0.1:8000).
-
-JARVIS Frontend - Runs the Next.js development server on http://localhost:3000.
-
-Note: To safely shut down all microservices and free up system ports, simply run stop_jarvis.bat.
-
-🤖 Meet the Agents
-J.A.R.V.I.S. utilizes a modular agent architecture to handle different tasks efficiently:
-
-General Companion Agent: Handles standard conversational queries, brainstorming, and general knowledge.
-
-Web & Code Builder Agent: Specialized in writing clean, single-file HTML/CSS/JS web applications. It outputs strictly formatted code blocks that the backend extracts and saves as .html files for the frontend to render live.
-
-Root Cause Analysis (RCA) Agent: A strict, highly logical agent (running at a low temperature) designed to read system logs, identify port conflicts, trace Python exceptions, and provide precise, actionable fixes.
-
-⚠️ Troubleshooting
-1. "Only one usage of each socket address is normally permitted"
-
-Cause: Ollama is already running silently in the Windows background tray, blocking port 11434.
-
-Fix: Check your Windows system tray (bottom right corner), right-click the Ollama icon, and select "Quit". Then run start_jarvis.bat again.
-
-2. Frontend stuck on "Orchestrator reasoning..." or Backend Timeout
-
-Cause: Generating complete websites locally takes time. If the request takes longer than 5 minutes, standard browser fetch requests or HTTPX clients may time out.
-
-Fix: Ensure the backend httpx.AsyncClient has timeout=None configured in ollama_client.py, and the frontend fetch call utilizes an extended AbortController signal. (These patches are included in the current stable build).
+```bash
+cd backend && pip install -r requirements-dev.txt && python -m pytest -q     # includes a live MCP round trip
+cd mcp-server && pip install -r requirements.txt && python -m pytest -q
+cd frontend && npm ci && npm run typecheck
+```
