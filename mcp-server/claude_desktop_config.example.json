@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "jarvis-workspace": {
+      "command": "C:\\path\\to\\Jarvis-Demo\\mcp-server\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "jarvis_mcp_server", "--transport", "stdio"],
+      "cwd": "C:\\path\\to\\Jarvis-Demo\\mcp-server",
+      "env": {
+        "MCP_ALLOWED_ROOT": "C:\\path\\to\\demo-project",
+        "JARVIS_APPROVAL_SECRET": "use-the-value-from-mcp-server/.env"
+      }
+    }
+  }
+}
